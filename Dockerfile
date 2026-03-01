@@ -4,13 +4,13 @@
 FROM rust:1.93-slim@sha256:7e6fa79cf81be23fd45d857f75f583d80cfdbb11c91fa06180fd747fda37a61d AS builder
 
 WORKDIR /app
-ARG ZEROCLAW_CARGO_FEATURES=""
+ARG ZEROCLAW_CARGO_FEATURES="whatsapp-web"
 
 # Install build dependencies
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y \
-        pkg-config \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # 1. Copy manifests to cache dependencies
@@ -25,9 +25,9 @@ RUN --mount=type=cache,id=zeroclaw-cargo-registry,target=/usr/local/cargo/regist
     --mount=type=cache,id=zeroclaw-cargo-git,target=/usr/local/cargo/git,sharing=locked \
     --mount=type=cache,id=zeroclaw-target,target=/app/target,sharing=locked \
     if [ -n "$ZEROCLAW_CARGO_FEATURES" ]; then \
-      cargo build --release --features "$ZEROCLAW_CARGO_FEATURES"; \
+    cargo build --release --features "$ZEROCLAW_CARGO_FEATURES"; \
     else \
-      cargo build --release --locked; \
+    cargo build --release --locked; \
     fi
 RUN rm -rf src benches crates/robot-kit/src
 
@@ -41,27 +41,27 @@ COPY web/ web/
 # Keep release builds resilient when frontend dist assets are not prebuilt in Git.
 RUN mkdir -p web/dist && \
     if [ ! -f web/dist/index.html ]; then \
-      printf '%s\n' \
-        '<!doctype html>' \
-        '<html lang="en">' \
-        '  <head>' \
-        '    <meta charset="utf-8" />' \
-        '    <meta name="viewport" content="width=device-width,initial-scale=1" />' \
-        '    <title>ZeroClaw Dashboard</title>' \
-        '  </head>' \
-        '  <body>' \
-        '    <h1>ZeroClaw Dashboard Unavailable</h1>' \
-        '    <p>Frontend assets are not bundled in this build. Build the web UI to populate <code>web/dist</code>.</p>' \
-        '  </body>' \
-        '</html>' > web/dist/index.html; \
+    printf '%s\n' \
+    '<!doctype html>' \
+    '<html lang="en">' \
+    '  <head>' \
+    '    <meta charset="utf-8" />' \
+    '    <meta name="viewport" content="width=device-width,initial-scale=1" />' \
+    '    <title>ZeroClaw Dashboard</title>' \
+    '  </head>' \
+    '  <body>' \
+    '    <h1>ZeroClaw Dashboard Unavailable</h1>' \
+    '    <p>Frontend assets are not bundled in this build. Build the web UI to populate <code>web/dist</code>.</p>' \
+    '  </body>' \
+    '</html>' > web/dist/index.html; \
     fi
 RUN --mount=type=cache,id=zeroclaw-cargo-registry,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,id=zeroclaw-cargo-git,target=/usr/local/cargo/git,sharing=locked \
     --mount=type=cache,id=zeroclaw-target,target=/app/target,sharing=locked \
     if [ -n "$ZEROCLAW_CARGO_FEATURES" ]; then \
-      cargo build --release --features "$ZEROCLAW_CARGO_FEATURES"; \
+    cargo build --release --features "$ZEROCLAW_CARGO_FEATURES"; \
     else \
-      cargo build --release --locked; \
+    cargo build --release --locked; \
     fi && \
     cp target/release/zeroclaw /app/zeroclaw && \
     strip /app/zeroclaw
